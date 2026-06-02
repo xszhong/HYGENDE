@@ -60,8 +60,8 @@ class GPTWrapper(LLMWrapper):
             max_backoff=max_backoff,
         )
         self.timeout = timeout
-        #self.api = OpenAI(base_url="https://api.deepseek.com", api_key = 'sk-77b97ca578e34bfd8fb8336290f8457f')
-        self.api = OpenAI(base_url="https://api.openai.com/v1", api_key = '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')
+        #self.api = OpenAI(base_url="https://api.deepseek.com", api_key = '*******')
+        self.api = OpenAI(base_url="https://api.openai.com/v1", api_key = '*******')
         self.api_with_cache = OpenAIAPICache(port=port, **redis_kwargs)
         self.api_with_cache.api_call = self._generate
         self.api_with_cache.batched_api_call = self._batched_generate
@@ -79,8 +79,8 @@ class GPTWrapper(LLMWrapper):
         if len(messages) == 0:
             return []
 
-        #client = AsyncOpenAI(base_url="https://api.deepseek.com", api_key = 'sk-77b97ca578e34bfd8fb8336290f8457f')
-        client = AsyncOpenAI(base_url="https://api.openai.com/v1", api_key = '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')
+        #client = AsyncOpenAI(base_url="https://api.deepseek.com", api_key = '******')
+        client = AsyncOpenAI(base_url="https://api.openai.com/v1", api_key = '******')
         status_bar = tqdm.tqdm(total=len(messages))
 
         async def _async_generate(sem, **kwargs):
