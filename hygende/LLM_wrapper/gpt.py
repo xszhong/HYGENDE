@@ -61,7 +61,7 @@ class GPTWrapper(LLMWrapper):
         )
         self.timeout = timeout
         #self.api = OpenAI(base_url="https://api.deepseek.com", api_key = '********')
-        self.api = OpenAI(base_url="https://api.openai.com/v1", api_key = '********')
+        #self.api = OpenAI(base_url="https://api.openai.com/v1", api_key = '********')
         self.api_with_cache = OpenAIAPICache(port=port, **redis_kwargs)
         self.api_with_cache.api_call = self._generate
         self.api_with_cache.batched_api_call = self._batched_generate
@@ -80,7 +80,7 @@ class GPTWrapper(LLMWrapper):
             return []
 
         #client = AsyncOpenAI(base_url="https://api.deepseek.com", api_key = '********')
-        client = AsyncOpenAI(base_url="https://api.openai.com/v1", api_key = '********')
+        #client = AsyncOpenAI(base_url="https://api.openai.com/v1", api_key = '********')
         status_bar = tqdm.tqdm(total=len(messages))
 
         async def _async_generate(sem, **kwargs):
