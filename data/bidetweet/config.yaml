@@ -1,0 +1,155 @@
+task_name: bidetweet
+
+train_data_path: ./bitrain.json
+val_data_path: ./bival.json
+test_data_path: ./bitest.json
+prompt_templates:
+  observations:
+    multi_content: |
+      A tweet written by a user suspected of suffering from depression is the following: "${content}".
+      So far, this tweet has got ${likes_count} likes, ${replies_count} replies, and ${retweets_count} retweets.
+      The answer whether the user is suffering from depression or not is: ${label}.
+      
+  adaptive_info_prompt:
+    multi_content: |
+      Pattern ${idx}: ${hypothesis_text}
+      ${observations}
+    
+  few_shot_prefix: |
+    Here are some examples:
+  batched_generation:
+    system: |-
+      You're a professional psychiatrist major in depression.
+      Given a set of tweets, we want to generate hypotheses that are useful for predicting whether the tweet is written by a user who is suffering from depression.
+
+      Using the given examples, please propose ${num_hypotheses} possible hypothesis pairs.
+      These hypotheses should identify specific patterns that occur across the provided tweets.
+
+      Please propose ${num_hypotheses} possible hypotheses.
+      Please generate them in the format of: 
+      1. [hypothesis] 
+      2. [hypothesis] 
+      ... 
+      ${num_hypotheses}. [hypothesis].
+      Please make the hypotheses general enough to be applicable to new observations.
+
+    user: |-
+      We made some observations:
+      ${observations}
+      Please generate hypotheses that are useful for predicting whether a tweet is written by a depressed user. 
+      Propose ${num_hypotheses} possible hypotheses. Generate them in the format of 1. [hypothesis], 2. [hypothesis], ... ${num_hypotheses}. [hypothesis].
+      Proposed hypotheses:
+
+  few_shot_baseline:
+    system: |-
+      You're a professional psychiatrist major in depression.
+      Give you a tweet, you are asked to determine whether this tweet is written by a user who is suffering from depression.
+      Give an answer. The answer should be one word (yes or no).
+      No justification or description is needed. 
+      
+      Please format your final answer strictly as follows, as this format is crucial for our workflow: 
+      Final answer: yes or no
+      (e.g. Final answer: yes)
+
+    user: |-
+      ${few_shot_prefix}${observations}
+      A tweet written by a user suspected of suffering from depression is the following: "${content}". Is this user depressive or not?
+      Answer:
+
+  inference:
+    system: |-
+      You're a professional psychiatrist major in depression and you need to determine whether a tweet is written by a depressive user.
+      From past experiences, you learned some patterns. 
+      Now, you need to apply the learned pattern to a new tweet and predict whether the user who wrote this tweet is suffering from depression or not.
+      Give an answer. The answer should be one word (yes or no).
+      No justification or description is needed. 
+      
+      Please format your final answer strictly as follows, as this format is crucial for our workflow: 
+      First step: 
+      Second step: 
+      Third step: 
+      Final answer: yes or no
+      (e.g. Final answer: yes)
+
+    user: |-
+      Our learned patterns: ${hypothesis}                          
+      A tweet written by a user suspected of suffering from depression is the following: "${content}". Is this user depressive or not?
+
+      Given the pattern you learned above, give an answer of whether the user is depressive or not.
+      Think step by step.
+      First step: Think about which pattern can be applied to the tweet.
+      Second step: Analyze the characteristic of this tweet.
+      Third step: Based on the pattern, is this user depressive or not?
+      Final step: Give your final answer.
+
+  is_relevant:
+    system: |-
+      You're a professional psychiatrist major in depression and you need to determine whether a tweet is written by a depressive user.
+      From past experiences, you learned a pattern. 
+      Now, given a new tweet, you need to determine whether this pattern is relevant or not.
+      Please answer "yes" if the pattern is relevant and answer "no" if the pattern is not relevant.
+      Please explain your answer succinctly in 1-2 sentences.
+
+    user: |-
+      Our learned pattern: ${hypothesis}                            
+      A tweet written by a user suspected of suffering from depression is the following: "${content}".
+
+      Answer:
+
+  adaptive_inference:
+    system: |-
+      You're a professional psychiatrist major in depression and you need to determine whether a tweet is written by a depressive user.
+      From past experiences, you learned some patterns. 
+      For each pattern, you will also see a couple of examples that worked for each pattern.
+      Please choose a pattern. To do this, look at the examples associated with each pattern, and find which set of the examples are closest to the new tweet. 
+      Please choose the pattern corresponding to that set of examples.
+      Please give an answer. The answer should be one word (yes or no).
+      No justification or description is needed.
+      
+      Please format your final answer strictly as follows, as this format is crucial for our workflow:
+      Reasoning for choosing pattern: reason,
+      Chosen pattern: pattern,
+      Reasoning for choice of answer: reason,
+      Final answer: yes or no
+      (e.g. Final answer: yes)
+
+    user: |-
+      Here are some previously generated patterns with some example where it predicted correctly if a tweet is written by a depressive user.
+      ${adaptive_info_prompt}
+      New tweet:
+      A tweet written by a user suspected of suffering from depression is the following: "${content}"
+      
+      Is this user depressive or not?
+      Think step-by-step.
+      Step 1: Look at the new tweet and compare it with the set of examples associated with each provided pattern. 
+      Step 2: Find the set of examples that is the most similar to the new tweet, pick and repeat the pattern associated with that set of examples.
+      Step 3: Apply the pattern you picked to the new tweet and predict whether the new tweet is written by a depressive user or not.
+      Step 4: Give your final answer.
+      Answer:
+
+  adaptive_selection:
+    system: |-
+      You're a professional psychiatrist major in depression and you need to determine whether a tweet is written by a depressive user.
+      From past experiences, you learned some patterns. 
+      For each pattern, you will also see a couple of examples that worked for each pattern.
+      Please choose a pattern. To do this, look at the examples associated with each pattern, and find which set of the examples are closest to the new tweet. 
+      Please choose the pattern corresponding to that set of examples.
+      
+      Please format your final answer strictly as follows, as this format is crucial for our workflow:
+      Reasoning for choosing pattern: reason,
+      Chosen pattern: pattern <number>.
+
+    user: |-
+      Here are some previously generated patterns with some example where it predicted correctly if a tweet is written by a depressive user.
+      ${adaptive_info_prompt}
+      New tweet:
+      A tweet written by a user suspected of suffering from depression is the following: "${content}". Is this user depressive or not?
+
+      Look at the new tweet and compare it with the set of examples associated with each provided pattern. 
+      Find the set of examples that is the most similar to the new tweet, pick and repeat the pattern associated with that set of examples.
+      Remember to follow the format:
+      Please give your final answer in the following format:
+      Reasoning for choosing pattern: reason,
+      Chosen pattern: Pattern <number>.
+
+      Answer:
